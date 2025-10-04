@@ -1687,53 +1687,88 @@ static struct device_info boards[] = {
         .first_sysupgrade_partition = "os-image",
         .last_sysupgrade_partition = "file-system",
     },
-    {
+{
         .id = "DECO-M4R-V3",
         .vendor = "TP-LINK",
         .support_list =
-            "SupportList:\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:55530000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:45550000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:43410000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:4A500000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:41550000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:4B520000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:54570000}\n"
-            "{product_name:M4R,product_ver:3.0.0,special_id:42340000}\n",
+            "SupportList:\r\n"
+            "product-name:M4R,product-ver:3.0.0,special-id:55530000\r\n"  /* US */
+            "product-name:M4R,product-ver:3.0.0,special-id:45550000\r\n"  /* EU */  
+            "product-name:M4R,product-ver:3.0.0,special-id:43410000\r\n"  /* CA */
+            "product-name:M4R,product-ver:3.0.0,special-id:4A500000\r\n"  /* JP */
+            "product-name:M4R,product-ver:3.0.0,special-id:41550000\r\n"  /* AU */
+            "product-name:M4R,product-ver:3.0.0,special-id:4B520000\r\n"  /* BR */
+            "product-name:M4R,product-ver:3.0.0,special-id:54570000\r\n"  /* TW */
+            "product-name:M4R,product-ver:3.0.0,special-id:42340000\r\n", /* CN */
+        
         .part_trail = PART_TRAIL_FF,
-        .soft_ver = SOFT_VER_TEXT("soft_ver:1.5.1\n"),
-        .partitions = {{"SBL1", 0x00000, 0x30000},
-                       {"boot-config_0", 0x30000, 0x10000},
-                       {"MIBIB", 0x40000, 0x10000},
-                       {"boot-config_1", 0x50000, 0x10000},
-                       {"QSEE", 0x60000, 0x60000},
-                       {"CDT", 0xc0000, 0x10000},
-                       {"DDRPARAMS", 0xd0000, 0x10000},
-                       {"uboot-env", 0xe0000, 0x10000},
-                       {"fs-uboot@0", 0xf0000, 0x80000},
-                       {"radio", 0x170000, 0x10000},
-                       {"default-mac", 0x180000, 0x01000},
-                       {"device-id", 0x182000, 0x01000},
-                       {"product-info", 0x183000, 0x05000},
-                       {"support-list", 0x190000, 0x10000},
-                       {"user-config", 0x200000, 0x10000},
-                       {"device-config", 0x210000, 0x10000},
-                       {"group-info", 0x220000, 0x10000},
-                       {"partition-table@0", 0x230000, 0x02000},
-                       {"os-image@0", 0x240000, 0x320000},
-                       {"file-system@0", 0x560000, 0xa00000},
-                       {"soft-version@0", 0xf60000, 0x10000},
-                       {"profile@0", 0xf70000, 0x10000},
-                       {"default-config@0", 0xf80000, 0x10000},
-                       {"partition-table@1", 0xf90000, 0x02000},
-                       {"fs-uboot@1", 0xfa0000, 0x80000},
-                       {"firmware", 0x1020000,
-                        0xf60000}, // (os-image@1 + file-system@1)
-                       {NULL, 0, 0}},
-        .partition_names.partition_table = "partition-table@1",
-        .partition_names.soft_ver = "soft-version@1",
-        .partition_names.os_image = "os-image@1",
-        .partition_names.file_system = "file-system@1",
+        /* Updated soft version to match current OpenWrt for proper validation */
+        .soft_ver = SOFT_VER_TEXT("soft-ver:24.10.3 Build $(shell date +%Y%m%d) Rel.00000"),
+        
+        /* CRITICAL: Set to Cloud type for proper handling */
+        // .type = SAFELOADER_TYPE_CLOUD,
+        
+        /* Partition layout combining slot 1 (kernel + rootfs) + unused space
+        * Total available: 0x1fc0000 - 0x1020000 = 0xfa0000 (15.625MB) */
+        .partitions = {
+            /* Critical partitions - NEVER MODIFY */
+            {"SBL1", 0x00000, 0x30000},
+            {"boot-config_0", 0x30000, 0x10000},
+            {"MIBIB", 0x40000, 0x10000},
+            {"boot-config_1", 0x50000, 0x10000},
+            {"QSEE", 0x60000, 0x60000},
+            {"CDT", 0xc0000, 0x10000},
+            {"DDRPARAMS", 0xd0000, 0x10000},
+            {"uboot-env", 0xe0000, 0x10000},
+            {"fs-uboot@0", 0xf0000, 0x80000},
+            {"radio", 0x170000, 0x10000},
+            
+            /* Configuration partitions - maintain stock layout */
+            {"default-mac", 0x180000, 0x01000},
+            {"device-id", 0x182000, 0x01000},
+            {"product-info", 0x183000, 0x05000},
+            {"support-list", 0x190000, 0x10000},
+            {"user-config", 0x200000, 0x10000},
+            {"device-config", 0x210000, 0x10000},
+            {"group-info", 0x220000, 0x10000},
+            {"partition-table@0", 0x230000, 0x02000},
+            
+            /* SLOT 0 - Keep separate for stock firmware recovery */
+            {"os-image@0", 0x240000, 0x320000},
+            {"file-system@0", 0x560000, 0xa00000},
+            {"soft-version@0", 0xf60000, 0x10000},
+            {"profile@0", 0xf70000, 0x10000},
+            {"default-config@0", 0xf80000, 0x10000},
+            {"partition-table@1", 0xf90000, 0x02000},
+            {"fs-uboot@1", 0xfa0000, 0x80000},
+            
+            /* SLOT 1 - Combined firmware partition for OpenWrt
+            * MTD splitter will automatically separate os-image@1(kernel)/file-system@1(rootfs) */
+            // 0x320000 + 0xc40000 = 0xf60000
+            {"os-image@1", 0x1020000, 0x320000},
+            {"file-system@1", 0x1340000, 0xc40000},
+            // {"firmware", 0x1020000, 0xf60000},
+            
+            /* Slot 1 metadata partitions */
+            {"soft-version@1", 0x1fc0000, 0x10000},
+            {"profile@1", 0x1fd0000, 0x10000},
+            {"default-config@1", 0x1fe0000, 0x10000},
+            {"url-sig", 0x1ff0000, 0x10000},
+            {NULL, 0, 0}
+        },
+
+        .partition_names = {
+            .partition_table = "partition-table@1",
+            .support_list = "support-list",
+            .soft_ver = "soft-version@1", 
+            .os_image = "os-image@1",
+            .file_system = "file-system@1",
+            // .os_image = "firmware",    /* Combined partition for OpenWrt */
+            // .file_system = "firmware", /* Same as os_image for combined */
+        },
+
+        // .first_sysupgrade_partition = "firmware",
+        // .last_sysupgrade_partition = "firmware",
         .first_sysupgrade_partition = "os-image@1",
         .last_sysupgrade_partition = "file-system@1",
     },
