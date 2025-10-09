@@ -1749,9 +1749,9 @@ static struct device_info boards[] = {
               * MTD splitter will automatically separate
               * os-image@1(kernel)/file-system@1(rootfs) */
              // 0x320000 + 0xc40000 = 0xf60000
-             {"os-image@1", 0x1020000, 0x320000},
-             {"file-system@1", 0x1340000, 0xc40000},
-             // {"firmware", 0x1020000, 0xf60000},
+             // {"os-image@1", 0x1020000, 0x320000},
+             // {"file-system@1", 0x1340000, 0xc40000},
+             {"firmware", 0x1020000, 0xf60000},
 
              /* Slot 1 metadata partitions */
              {"soft-version@1", 0x1fc0000, 0x10000},
@@ -1765,17 +1765,16 @@ static struct device_info boards[] = {
                 .partition_table = "partition-table@1",
                 .support_list = "support-list",
                 .soft_ver = "soft-version@1",
-                .os_image = "os-image@1",
-                .file_system = "file-system@1",
-                // .os_image = "firmware",    /* Combined partition for OpenWrt
-                // */ .file_system = "firmware", /* Same as os_image for
-                // combined */
+                // .os_image = "os-image@1",
+                // .file_system = "file-system@1",
+                .os_image = "firmware",
+                .file_system = "firmware",
             },
 
-        // .first_sysupgrade_partition = "firmware",
-        // .last_sysupgrade_partition = "firmware",
-        .first_sysupgrade_partition = "os-image@1",
-        .last_sysupgrade_partition = "file-system@1",
+        .first_sysupgrade_partition = "firmware",
+        .last_sysupgrade_partition = "firmware",
+        // .first_sysupgrade_partition = "os-image@1",
+        // .last_sysupgrade_partition = "file-system@1",
     },
 
     /** Firmware layout for the Deco M4R v4 */
